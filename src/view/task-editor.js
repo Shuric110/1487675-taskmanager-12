@@ -74,13 +74,13 @@ export const createTaskEditorTemplate = function (task) {
       dueDate: null,
       color: `black`,
       repeatingDays: {
-        'mo': false,
-        'tu': false,
-        'we': false,
-        'th': false,
-        'fr': false,
-        'sa': false,
-        'su': false
+        mo: false,
+        tu: false,
+        we: false,
+        th: false,
+        fr: false,
+        sa: false,
+        su: false
       },
       isArchive: false,
       isFavorite: false

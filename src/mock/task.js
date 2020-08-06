@@ -11,13 +11,13 @@ const DESCRIPTIONS = [
 
 const generateRepeatingDays = function (noRepeating) {
   const days = {
-    'mo': false,
-    'tu': false,
-    'we': false,
-    'th': false,
-    'fr': false,
-    'sa': false,
-    'su': false
+    mo: false,
+    tu: false,
+    we: false,
+    th: false,
+    fr: false,
+    sa: false,
+    su: false
   };
 
   if (!noRepeating) {

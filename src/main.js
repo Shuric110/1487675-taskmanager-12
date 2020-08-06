@@ -9,11 +9,13 @@ import {createLoadMoreTemplate} from "./view/load-more.js";
 import {render} from "./util.js";
 
 import {generateTasks} from "./mock/task.js";
+import {generateFilters} from "./mock/filter.js";
 
 const TASK_COUNT = 20;
 const TASK_LOAD_COUNT = 8;
 
 let tasks = generateTasks(TASK_COUNT);
+let filters = generateFilters(tasks);
 let renderedTasks = 0;
 let loadMoreButton;
 
@@ -36,7 +38,7 @@ const mainElement = document.querySelector(`.main`);
 const mainControlElement = mainElement.querySelector(`.main__control`);
 
 render(mainControlElement, `beforeend`, createMenuTemplate());
-render(mainElement, `beforeend`, createFilterTemplate());
+render(mainElement, `beforeend`, createFilterTemplate(filters));
 render(mainElement, `beforeend`, createBoardTemplate());
 
 const boardElement = mainElement.querySelector(`.board`);
