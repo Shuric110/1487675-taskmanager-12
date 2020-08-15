@@ -1,4 +1,4 @@
-import {createElementFromTemplate} from "../util.js";
+import {createElementFromTemplate} from "../util/render.js";
 
 export default class Component {
   constructor() {

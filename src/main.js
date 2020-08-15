@@ -1,5 +1,4 @@
 import MenuView from "./view/menu.js";
-
 import FilterView from "./view/filter.js";
 import BoardView from "./view/board.js";
 import SortView from "./view/sort.js";
@@ -9,7 +8,7 @@ import TaskEditorView from "./view/task-editor.js";
 import TaskView from "./view/task.js";
 import LoadMoreView from "./view/load-more.js";
 
-import {RenderPosition, render} from "./util.js";
+import {RenderPosition, render, replace} from "./util/render.js";
 
 import {generateTasks} from "./mock/task.js";
 import {generateFilters} from "./mock/filter.js";
@@ -23,7 +22,7 @@ let filters = generateFilters(tasks);
 const mainElement = document.querySelector(`.main`);
 const mainControlElement = mainElement.querySelector(`.main__control`);
 
-const renderTask = function (taskListElement, task) {
+const renderTask = function (taskListComponent, task) {
   const taskComponent = new TaskView(task);
   let taskEditorComponent;
 
@@ -43,13 +42,13 @@ const renderTask = function (taskListElement, task) {
         switchToView();
       });
 
-      taskListElement.replaceChild(taskEditorComponent.getElement(), taskComponent.getElement());
+      replace(taskEditorComponent, taskComponent);
       document.addEventListener(`keydown`, onEscKeyDown);
     }
   };
 
   const switchToView = function () {
-    taskListElement.replaceChild(taskComponent.getElement(), taskEditorComponent.getElement());
+    replace(taskComponent, taskEditorComponent);
     taskEditorComponent = null;
     document.removeEventListener(`keydown`, onEscKeyDown);
   };
@@ -58,15 +57,15 @@ const renderTask = function (taskListElement, task) {
     switchToEdit();
   });
 
-  render(taskListElement, taskComponent.getElement(), RenderPosition.BEFOREEND);
+  render(taskListComponent, taskComponent, RenderPosition.BEFOREEND);
 };
 
 const renderBoard = function (boardContainer, boardTasks) {
-  const boardElement = new BoardView().getElement();
-  render(boardContainer, boardElement, RenderPosition.BEFOREEND);
+  const boardComponent = new BoardView();
+  render(boardContainer, boardComponent, RenderPosition.BEFOREEND);
 
   if (boardTasks.every((task) => task.isArchive)) {
-    render(boardContainer, new NoTasksView().getElement(), RenderPosition.BEFOREEND);
+    render(boardContainer, new NoTasksView(), RenderPosition.BEFOREEND);
     return;
   }
 
@@ -78,7 +77,7 @@ const renderBoard = function (boardContainer, boardTasks) {
     const lastTaskIndex = Math.min(boardTasks.length - 1, firstTaskIndex + count - 1);
 
     for (let i = firstTaskIndex; i <= lastTaskIndex; i++) {
-      renderTask(taskListElement, boardTasks[i]);
+      renderTask(taskListComponent, boardTasks[i]);
     }
 
     renderedTasksCount = lastTaskIndex + 1;
@@ -88,25 +87,25 @@ const renderBoard = function (boardContainer, boardTasks) {
     }
   };
 
-  const taskListElement = new TaskListView().getElement();
+  const taskListComponent = new TaskListView();
 
-  render(boardElement, new SortView().getElement(), RenderPosition.BEFOREEND);
-  render(boardElement, taskListElement, RenderPosition.BEFOREEND);
+  render(boardComponent, new SortView(), RenderPosition.BEFOREEND);
+  render(boardComponent, taskListComponent, RenderPosition.BEFOREEND);
 
   renderTasks(TASK_LOAD_COUNT);
 
   if (renderedTasksCount < boardTasks.length) {
-    loadMoreButton = new LoadMoreView().getElement();
-    render(boardElement, loadMoreButton, RenderPosition.BEFOREEND);
+    loadMoreButton = new LoadMoreView();
+    render(boardComponent, loadMoreButton, RenderPosition.BEFOREEND);
 
-    loadMoreButton.addEventListener(`click`, function (evt) {
+    loadMoreButton.getElement().addEventListener(`click`, function (evt) {
       evt.preventDefault();
       renderTasks(TASK_LOAD_COUNT);
     });
   }
 };
 
-render(mainControlElement, new MenuView().getElement(), RenderPosition.BEFOREEND);
-render(mainElement, new FilterView(filters).getElement(), RenderPosition.BEFOREEND);
+render(mainControlElement, new MenuView(), RenderPosition.BEFOREEND);
+render(mainElement, new FilterView(filters), RenderPosition.BEFOREEND);
 
 renderBoard(mainElement, tasks);
