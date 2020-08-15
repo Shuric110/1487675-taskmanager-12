@@ -8,7 +8,7 @@ import TaskEditorView from "./view/task-editor.js";
 import TaskView from "./view/task.js";
 import LoadMoreView from "./view/load-more.js";
 
-import {RenderPosition, render, replace} from "./util/render.js";
+import {RenderPosition, render, replace, remove} from "./util/render.js";
 
 import {generateTasks} from "./mock/task.js";
 import {generateFilters} from "./mock/filter.js";
@@ -37,8 +37,7 @@ const renderTask = function (taskListComponent, task) {
     if (!taskEditorComponent) {
       taskEditorComponent = new TaskEditorView(task);
 
-      taskEditorComponent.getElement().querySelector(`form`).addEventListener(`submit`, function (evt) {
-        evt.preventDefault();
+      taskEditorComponent.setFormSubmitHandler(function () {
         switchToView();
       });
 
@@ -53,7 +52,7 @@ const renderTask = function (taskListComponent, task) {
     document.removeEventListener(`keydown`, onEscKeyDown);
   };
 
-  taskComponent.getElement().querySelector(`.card__btn--edit`).addEventListener(`click`, function () {
+  taskComponent.setEditClickHandler(function () {
     switchToEdit();
   });
 
@@ -83,7 +82,7 @@ const renderBoard = function (boardContainer, boardTasks) {
     renderedTasksCount = lastTaskIndex + 1;
 
     if (renderedTasksCount >= boardTasks.length) {
-      loadMoreButton.remove();
+      remove(loadMoreButton);
     }
   };
 
@@ -98,8 +97,7 @@ const renderBoard = function (boardContainer, boardTasks) {
     loadMoreButton = new LoadMoreView();
     render(boardComponent, loadMoreButton, RenderPosition.BEFOREEND);
 
-    loadMoreButton.getElement().addEventListener(`click`, function (evt) {
-      evt.preventDefault();
+    loadMoreButton.setButtonClickHandler(function () {
       renderTasks(TASK_LOAD_COUNT);
     });
   }
