@@ -1,4 +1,5 @@
-import {createElementFromTemplate, escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
+import ComponentView from "./component.js";
+import {escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
 import {COLORS} from "../const.js";
 
 const BLANK_TASK = {
@@ -141,17 +142,10 @@ const createTaskEditorTemplate = function (task) {
   `;
 };
 
-export default class TaskEditor {
+export default class TaskEditor extends ComponentView {
   constructor(task) {
-    this._element = null;
+    super();
     this._task = task || BLANK_TASK;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-    return this._element;
   }
 
   getTemplate() {

@@ -1,17 +1,10 @@
+import ComponentView from "./component.js";
 import {escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
-import {createElementFromTemplate} from "../util.js";
 
-export default class Task {
+export default class Task extends ComponentView {
   constructor(task) {
-    this._element = null;
+    super();
     this._task = task;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-    return this._element;
   }
 
   getTemplate() {
