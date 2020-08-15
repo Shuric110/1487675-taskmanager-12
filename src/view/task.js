@@ -1,5 +1,6 @@
 import ComponentView from "./component.js";
-import {escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
+import {formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util/task.js";
+import {escapeHtml} from "../util/common.js";
 
 export default class Task extends ComponentView {
   constructor(task) {

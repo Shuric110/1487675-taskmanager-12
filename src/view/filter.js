@@ -1,5 +1,5 @@
 import ComponentView from "./component.js";
-import {escapeHtml} from "../util.js";
+import {escapeHtml} from "../util/common.js";
 
 export default class Filter extends ComponentView {
   constructor(filters) {

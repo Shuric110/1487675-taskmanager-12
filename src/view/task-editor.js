@@ -1,5 +1,6 @@
 import ComponentView from "./component.js";
-import {escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
+import {isTaskExpired, isTaskRepeating, formatTaskDueDate} from "../util/task.js";
+import {escapeHtml} from "../util/common.js";
 import {COLORS} from "../const.js";
 
 const BLANK_TASK = {
