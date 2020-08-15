@@ -1,5 +1,22 @@
-import {escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
+import {createElementFromTemplate, escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
 import {COLORS} from "../const.js";
+
+const BLANK_TASK = {
+  description: ``,
+  dueDate: null,
+  color: `black`,
+  repeatingDays: {
+    mo: false,
+    tu: false,
+    we: false,
+    th: false,
+    fr: false,
+    sa: false,
+    su: false
+  },
+  isArchive: false,
+  isFavorite: false
+};
 
 const createTaskEditorDateTemplate = function (task) {
   return `
@@ -67,26 +84,7 @@ const createTaskEditorColorsTemplate = function (task) {
   `).join(``);
 };
 
-export const createTaskEditorTemplate = function (task) {
-  if (!task) {
-    task = {
-      description: ``,
-      dueDate: null,
-      color: `black`,
-      repeatingDays: {
-        mo: false,
-        tu: false,
-        we: false,
-        th: false,
-        fr: false,
-        sa: false,
-        su: false
-      },
-      isArchive: false,
-      isFavorite: false
-    };
-  }
-
+const createTaskEditorTemplate = function (task) {
   const {description, color} = task;
 
   const taskDateTemplate = createTaskEditorDateTemplate(task);
@@ -142,3 +140,21 @@ export const createTaskEditorTemplate = function (task) {
     </article>
   `;
 };
+
+export default class TaskEditor {
+  constructor(task) {
+    this._element = null;
+    this._task = task || BLANK_TASK;
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElementFromTemplate(this.getTemplate());
+    }
+    return this._element;
+  }
+
+  getTemplate() {
+    return createTaskEditorTemplate(this._task);
+  }
+}

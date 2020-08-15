@@ -1,3 +1,9 @@
+export const RenderPosition = {
+  AFTERBEGIN: `afterbegin`,
+  BEFOREEND: `beforeend`
+};
+
+
 export const getRandomInteger = function (a = 0, b = 1) {
   const lower = Math.ceil(Math.min(a, b));
   const upper = Math.floor(Math.max(a, b));
@@ -50,6 +56,20 @@ export const isTaskRepeating = function (task) {
   return Object.values(task.repeatingDays).some(Boolean);
 };
 
-export const render = function (container, position, template) {
-  container.insertAdjacentHTML(position, template);
+
+export const render = function (container, element, position) {
+  switch (position) {
+    case RenderPosition.AFTERBEGIN:
+      container.prepend(element);
+      break;
+    case RenderPosition.BEFOREEND:
+      container.append(element);
+      break;
+  }
+};
+
+export const createElementFromTemplate = function (template) {
+  const container = document.createElement(`div`);
+  container.innerHTML = template;
+  return container.firstElementChild;
 };
