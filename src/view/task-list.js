@@ -1,6 +1,6 @@
 import {createElementFromTemplate} from "../util.js";
 
-export default class LoadMore {
+export default class TaskList {
   constructor() {
     this._element = null;
   }
@@ -13,8 +13,6 @@ export default class LoadMore {
   }
 
   getTemplate() {
-    return `
-      <button class="load-more" type="button">load more</button>
-    `;
+    return `<div class="board__tasks"></div>`;
   }
 }

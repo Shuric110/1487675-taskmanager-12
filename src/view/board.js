@@ -1,10 +1,18 @@
-export const createBoardTemplate = function () {
-  return `
-    <section class="board container">
-      <div class="board__filter-list">
-      </div>
-      <div class="board__tasks">
-      </div>
-    </section>
-  `;
-};
+import {createElementFromTemplate} from "../util.js";
+
+export default class Board {
+  constructor() {
+    this._element = null;
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElementFromTemplate(this.getTemplate());
+    }
+    return this._element;
+  }
+
+  getTemplate() {
+    return `<section class="board container"></section>`;
+  }
+}
