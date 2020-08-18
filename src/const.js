@@ -7,14 +7,14 @@ export const SORT_TYPES = {
   },
   'date-up': {
     title: `DATE up`,
-    compare(a, b) {
-      return (!a ? 0 : a.getTime())
-        - (!b ? 0 : b.getTime());
+    compare({dueDate: a}, {dueDate: b}) {
+      return (!a ? Infinity : a.getTime())
+        - (!b ? Infinity : b.getTime());
     }
   },
   'date-down': {
     title: `DATE down`,
-    compare(a, b) {
+    compare({dueDate: a}, {dueDate: b}) {
       return (!b ? 0 : b.getTime())
         - (!a ? 0 : a.getTime());
     }

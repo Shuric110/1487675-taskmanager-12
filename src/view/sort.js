@@ -18,8 +18,14 @@ export default class Sort extends ComponentView {
   }
 
   _sortChangeHandler(evt) {
+    if (!evt.target.dataset.sort) {
+      return;
+    }
+
     evt.preventDefault();
-    this._callback.sortChange();
+    this._callback.sortChange(evt.target.dataset.sort);
+
+    evt.preventDefault();
   }
 
   setSortChangeHandler(callback) {
