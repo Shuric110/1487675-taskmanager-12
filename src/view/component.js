@@ -25,4 +25,8 @@ export default class Component {
   removeElement() {
     this._element = null;
   }
+
+  getHasElement() {
+    return this._element !== null;
+  }
 }

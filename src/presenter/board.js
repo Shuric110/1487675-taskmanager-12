@@ -7,6 +7,7 @@ import TaskView from "../view/task.js";
 import LoadMoreView from "../view/load-more.js";
 
 import {RenderPosition, render, replace, remove} from "../util/render.js";
+import {SORT_TYPES} from "../const.js";
 
 
 const TASK_LOAD_COUNT = 8;
@@ -21,11 +22,15 @@ export default class Board {
     this._sortComponent = new SortView();
     this._noTaskComponent = new NoTasksView();
 
+    this._currentSortMode = `default`;
+
     this._onLoadMoreClick = this._onLoadMoreClick.bind(this);
+    this._onSortChange = this._onSortChange.bind(this);
   }
 
   init(tasks) {
     this._tasks = tasks.slice();
+    this._sourceTasks = tasks.slice();
 
     render(this._boardContainer, this._boardComponent, RenderPosition.BEFOREEND);
     this._renderBoardContent();
@@ -90,10 +95,33 @@ export default class Board {
 
   _renderSort() {
     render(this._boardComponent, this._sortComponent, RenderPosition.BEFOREEND);
+    this._sortComponent.setSortChangeHandler(this._onSortChange);
   }
 
   _onLoadMoreClick() {
     this._renderTasks(TASK_LOAD_COUNT);
+  }
+
+  _onSortChange(sortMode) {
+    if (sortMode === this._currentSortMode) {
+      return;
+    }
+
+    this._sortTasks(sortMode);
+    this._clearTaskListContent();
+    this._renderTaskListContent();
+
+    this._currentSortMode = sortMode;
+  }
+
+  _sortTasks(sortMode) {
+    const {compare} = SORT_TYPES[sortMode];
+    if (!compare) {
+      // Если функция сравнения не определена, то подразумевается сортировка по умолчанию
+      this._tasks = this._sourceTasks.slice();
+    } else {
+      this._tasks.sort(compare);
+    }
   }
 
   _renderLoadMore() {
@@ -101,14 +129,18 @@ export default class Board {
     this._loadMoreComponent.setButtonClickHandler(this._onLoadMoreClick);
   }
 
-  _renderTaskList() {
-    render(this._boardComponent, this._taskListComponent, RenderPosition.BEFOREEND);
+  _renderTaskListContent() {
     this._renderedTasksCount = 0;
     this._renderTasks(TASK_LOAD_COUNT);
 
-    if (this._renderedTasksCount < this._tasks.length) {
+    if (this._renderedTasksCount < this._tasks.length && !this._loadMoreComponent.getHasElement()) {
       this._renderLoadMore();
     }
+  }
+
+  _clearTaskListContent() {
+    this._taskListComponent.getElement().innerHTML = ``;
+
   }
 
   _renderBoardContent() {
@@ -118,6 +150,7 @@ export default class Board {
     }
 
     this._renderSort();
-    this._renderTaskList();
+    render(this._boardComponent, this._taskListComponent, RenderPosition.BEFOREEND);
+    this._renderTaskListContent();
   }
 }
