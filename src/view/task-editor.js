@@ -1,4 +1,6 @@
-import {createElementFromTemplate, escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
+import ComponentView from "./component.js";
+import {isTaskExpired, isTaskRepeating, formatTaskDueDate} from "../util/task.js";
+import {escapeHtml} from "../util/common.js";
 import {COLORS} from "../const.js";
 
 const BLANK_TASK = {
@@ -141,20 +143,25 @@ const createTaskEditorTemplate = function (task) {
   `;
 };
 
-export default class TaskEditor {
+export default class TaskEditor extends ComponentView {
   constructor(task) {
-    this._element = null;
+    super();
     this._task = task || BLANK_TASK;
-  }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-    return this._element;
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
   }
 
   getTemplate() {
     return createTaskEditorTemplate(this._task);
+  }
+
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit();
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.formSubmit = callback;
+    this.getElement().querySelector(`form`).addEventListener(`submit`, this._formSubmitHandler);
   }
 }

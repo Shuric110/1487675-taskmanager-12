@@ -1,20 +1,24 @@
-import {createElementFromTemplate} from "../util.js";
+import ComponentView from "./component.js";
 
-export default class LoadMore {
+export default class LoadMore extends ComponentView {
   constructor() {
-    this._element = null;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-    return this._element;
+    super();
+    this._buttonClickHandler = this._buttonClickHandler.bind(this);
   }
 
   getTemplate() {
     return `
       <button class="load-more" type="button">load more</button>
     `;
+  }
+
+  _buttonClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.buttonClick();
+  }
+
+  setButtonClickHandler(callback) {
+    this.getElement().addEventListener(`click`, this._buttonClickHandler);
+    this._callback.buttonClick = callback;
   }
 }

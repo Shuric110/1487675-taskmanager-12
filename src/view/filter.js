@@ -1,16 +1,10 @@
-import {createElementFromTemplate, escapeHtml} from "../util.js";
+import ComponentView from "./component.js";
+import {escapeHtml} from "../util/common.js";
 
-export default class Filter {
+export default class Filter extends ComponentView {
   constructor(filters) {
-    this._element = null;
+    super();
     this._filters = filters;
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-    return this._element;
   }
 
   getTemplate() {

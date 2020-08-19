@@ -1,5 +1,5 @@
 import {COLORS} from "../const.js";
-import {getRandomInteger, getRandomElement} from "../util.js";
+import {getRandomInteger, getRandomElement} from "../util/common.js";
 
 const MAX_DATE_GAP = 7;
 const DESCRIPTIONS = [

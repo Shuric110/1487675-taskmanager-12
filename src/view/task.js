@@ -1,17 +1,13 @@
-import {escapeHtml, formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util.js";
-import {createElementFromTemplate} from "../util.js";
+import ComponentView from "./component.js";
+import {formatTaskDueDate, isTaskExpired, isTaskRepeating} from "../util/task.js";
+import {escapeHtml} from "../util/common.js";
 
-export default class Task {
+export default class Task extends ComponentView {
   constructor(task) {
-    this._element = null;
+    super();
     this._task = task;
-  }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElementFromTemplate(this.getTemplate());
-    }
-    return this._element;
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
@@ -69,5 +65,15 @@ export default class Task {
         </div>
       </article>
     `;
+  }
+
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.editClick();
+  }
+
+  setEditClickHandler(callback) {
+    this._callback.editClick = callback;
+    this.getElement().querySelector(`.card__btn--edit`).addEventListener(`click`, this._editClickHandler);
   }
 }

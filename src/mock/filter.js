@@ -1,4 +1,4 @@
-import {isTaskExpired, isTaskExpiresToday, isTaskRepeating} from "../util.js";
+import {isTaskExpired, isTaskExpiresToday, isTaskRepeating} from "../util/task.js";
 
 const TASK_FILTERS_MAP = {
   all: {
