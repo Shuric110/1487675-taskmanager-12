@@ -24,8 +24,6 @@ export default class Sort extends ComponentView {
 
     evt.preventDefault();
     this._callback.sortChange(evt.target.dataset.sort);
-
-    evt.preventDefault();
   }
 
   setSortChangeHandler(callback) {
