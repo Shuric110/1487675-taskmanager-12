@@ -8,6 +8,15 @@ const DESCRIPTIONS = [
   `Пройти интенсив на соточку`
 ];
 
+const taskIdSequence = {
+  _currentValue: 0,
+
+  getNextValue() {
+    this._currentValue++;
+    return `task-` + this._currentValue;
+  }
+};
+
 
 const generateRepeatingDays = function (noRepeating) {
   const days = {
@@ -43,6 +52,7 @@ const generateTask = function () {
   }
 
   return {
+    id: taskIdSequence.getNextValue(),
     description: getRandomElement(DESCRIPTIONS),
     dueDate,
     repeatingDays: generateRepeatingDays(hasDate),
