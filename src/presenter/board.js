@@ -30,6 +30,7 @@ export default class Board {
     this._onLoadMoreClick = this._onLoadMoreClick.bind(this);
     this._onSortChange = this._onSortChange.bind(this);
     this._onTaskChange = this._onTaskChange.bind(this);
+    this._onTaskModeChange = this._onTaskModeChange.bind(this);
   }
 
   init(tasks) {
@@ -45,6 +46,7 @@ export default class Board {
     const taskPresenter = new TaskPresenter(this._taskListComponent);
     taskPresenter.init(task);
     taskPresenter.setDataChangeHandler(this._onTaskChange);
+    taskPresenter.setModeChangeHandler(this._onTaskModeChange);
 
     this._taskPresenters[task.id] = taskPresenter;
   }
@@ -77,6 +79,14 @@ export default class Board {
     updateItem(this._tasks, newTask);
     updateItem(this._sourceTasks, newTask);
     this._taskPresenters[newTask.id].init(newTask);
+  }
+
+  _onTaskModeChange(editingTaskPresenter, isEditing) {
+    if (isEditing) {
+      Object.values(this._taskPresenters).forEach(function (taskPresenter) {
+        taskPresenter.resetView();
+      });
+    }
   }
 
   _onLoadMoreClick() {

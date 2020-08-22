@@ -7,10 +7,12 @@ export default class Task {
   constructor(taskContainer) {
     this._taskContainer = taskContainer;
 
+    this._isEditing = false;
     this._taskComponent = null;
     this._taskEditorComponent = null;
 
     this._dataChangeHandler = null;
+    this._modeChangeHandler = null;
 
     this._onEscKeyDown = this._onEscKeyDown.bind(this);
     this._onFormSubmit = this._onFormSubmit.bind(this);
@@ -21,6 +23,10 @@ export default class Task {
 
   setDataChangeHandler(dataChangeHandler) {
     this._dataChangeHandler = dataChangeHandler;
+  }
+
+  setModeChangeHandler(modeChangeHandler) {
+    this._modeChangeHandler = modeChangeHandler;
   }
 
   init(task) {
@@ -47,6 +53,11 @@ export default class Task {
   }
 
   _makeEditor(insteadComponent) {
+    if (this._modeChangeHandler && !this._isEditing) {
+      this._modeChangeHandler(this, true);
+    }
+    this._isEditing = true;
+
     this._taskEditorComponent = new TaskEditorView(this._task);
     this._taskEditorComponent.setFormSubmitHandler(this._onFormSubmit);
     document.addEventListener(`keydown`, this._onEscKeyDown);
@@ -55,10 +66,21 @@ export default class Task {
   }
 
   _switchToView() {
+    if (this._modeChangeHandler) {
+      this._modeChangeHandler(this, false);
+    }
+    this._isEditing = false;
+
     replace(this._taskComponent, this._taskEditorComponent);
 
     this._taskEditorComponent = null;
     document.removeEventListener(`keydown`, this._onEscKeyDown);
+  }
+
+  resetView() {
+    if (this._isEditing) {
+      this._switchToView();
+    }
   }
 
   _onEscKeyDown(evt) {
