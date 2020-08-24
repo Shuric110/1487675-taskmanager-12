@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const isTaskExpired = function (task) {
   if (task.dueDate === null) {
     return false;
@@ -25,7 +27,7 @@ export const isTaskRepeating = function (task) {
 };
 
 export const formatTaskDueDate = function (dueDate) {
-  return dueDate !== null
-    ? dueDate.toLocaleString(`en-US`, {day: `numeric`, month: `long`})
+  return (dueDate instanceof Date)
+    ? moment(dueDate).format(`D MMMM`)
     : ``;
 };
