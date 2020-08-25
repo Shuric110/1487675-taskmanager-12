@@ -2,11 +2,12 @@ import BoardView from "../view/board.js";
 import SortView from "../view/sort.js";
 import NoTasksView from "../view/no-tasks.js";
 import TaskListView from "../view/task-list.js";
-import TaskEditorView from "../view/task-editor.js";
-import TaskView from "../view/task.js";
 import LoadMoreView from "../view/load-more.js";
 
-import {RenderPosition, render, replace, remove} from "../util/render.js";
+import TaskPresenter from "./task";
+
+import {RenderPosition, render, remove} from "../util/render.js";
+import {updateItem} from "../util/common.js";
 import {SORT_TYPES} from "../const.js";
 
 
@@ -24,8 +25,12 @@ export default class Board {
 
     this._currentSortMode = `default`;
 
+    this._taskPresenters = {};
+
     this._onLoadMoreClick = this._onLoadMoreClick.bind(this);
     this._onSortChange = this._onSortChange.bind(this);
+    this._onTaskChange = this._onTaskChange.bind(this);
+    this._onTaskModeChange = this._onTaskModeChange.bind(this);
   }
 
   init(tasks) {
@@ -38,40 +43,12 @@ export default class Board {
 
 
   _renderTask(task) {
-    const taskComponent = new TaskView(task);
-    let taskEditorComponent;
+    const taskPresenter = new TaskPresenter(this._taskListComponent);
+    taskPresenter.init(task);
+    taskPresenter.setDataChangeHandler(this._onTaskChange);
+    taskPresenter.setModeChangeHandler(this._onTaskModeChange);
 
-    const onEscKeyDown = function (evt) {
-      if (evt.key === `Escape` || evt.key === `Esc`) {
-        evt.preventDefault();
-        switchToView();
-      }
-    };
-
-    const switchToEdit = function () {
-      if (!taskEditorComponent) {
-        taskEditorComponent = new TaskEditorView(task);
-
-        taskEditorComponent.setFormSubmitHandler(function () {
-          switchToView();
-        });
-
-        replace(taskEditorComponent, taskComponent);
-        document.addEventListener(`keydown`, onEscKeyDown);
-      }
-    };
-
-    const switchToView = function () {
-      replace(taskComponent, taskEditorComponent);
-      taskEditorComponent = null;
-      document.removeEventListener(`keydown`, onEscKeyDown);
-    };
-
-    taskComponent.setEditClickHandler(function () {
-      switchToEdit();
-    });
-
-    render(this._taskListComponent, taskComponent, RenderPosition.BEFOREEND);
+    this._taskPresenters[task.id] = taskPresenter;
   }
 
   _renderTasks(count) {
@@ -96,6 +73,20 @@ export default class Board {
   _renderSort() {
     render(this._boardComponent, this._sortComponent, RenderPosition.BEFOREEND);
     this._sortComponent.setSortChangeHandler(this._onSortChange);
+  }
+
+  _onTaskChange(newTask) {
+    updateItem(this._tasks, newTask);
+    updateItem(this._sourceTasks, newTask);
+    this._taskPresenters[newTask.id].init(newTask);
+  }
+
+  _onTaskModeChange(editingTaskPresenter, isEditing) {
+    if (isEditing) {
+      Object.values(this._taskPresenters).forEach(function (taskPresenter) {
+        taskPresenter.resetView();
+      });
+    }
   }
 
   _onLoadMoreClick() {
@@ -140,6 +131,9 @@ export default class Board {
 
   _clearTaskListContent() {
     this._taskListComponent.getElement().innerHTML = ``;
+    Object.values(this._taskPresenters).forEach(function (taskPresenter) {
+      taskPresenter.destroy();
+    });
 
   }
 

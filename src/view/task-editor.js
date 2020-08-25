@@ -1,4 +1,4 @@
-import ComponentView from "./component.js";
+import SmartComponentView from "./smart-component.js";
 import {isTaskExpired, isTaskRepeating, formatTaskDueDate} from "../util/task.js";
 import {escapeHtml} from "../util/common.js";
 import {COLORS} from "../const.js";
@@ -20,13 +20,13 @@ const BLANK_TASK = {
   isFavorite: false
 };
 
-const createTaskEditorDateTemplate = function (task) {
+const createTaskEditorDateTemplate = function (taskData) {
   return `
     <button class="card__date-deadline-toggle" type="button">
-      date: <span class="card__date-status">${task.dueDate ? `yes` : `no`}</span>
+      date: <span class="card__date-status">${taskData.hasDueDate ? `yes` : `no`}</span>
     </button>
 
-    ${task.dueDate ? `
+    ${taskData.hasDueDate ? `
         <fieldset class="card__date-deadline">
           <label class="card__input-deadline-wrap">
             <input
@@ -34,7 +34,7 @@ const createTaskEditorDateTemplate = function (task) {
               type="text"
               placeholder=""
               name="date"
-              value="${formatTaskDueDate(task.dueDate)}"
+              value="${formatTaskDueDate(taskData.dueDate)}"
             />
           </label>
         </fieldset>
@@ -42,33 +42,35 @@ const createTaskEditorDateTemplate = function (task) {
   `;
 };
 
-const createTaskEditorRepeatingDaysTemplate = function (task) {
+const createTaskEditorRepeatingDaysTemplate = function (taskData) {
   return `
     <button class="card__repeat-toggle" type="button">
-      repeat:<span class="card__repeat-status">${isTaskRepeating(task) ? `yes` : `no`}</span>
+      repeat:<span class="card__repeat-status">${taskData.isRepeating ? `yes` : `no`}</span>
     </button>
 
-    <fieldset class="card__repeat-days">
-      <div class="card__repeat-days-inner">
-        ${Object.entries(task.repeatingDays).map(([day, repeat]) => `
-          <input
-            class="visually-hidden card__repeat-day-input"
-            type="checkbox"
-            id="repeat-${day}"
-            name="repeat"
-            value="${day}"
-            ${repeat ? `checked` : ``}
-          />
-          <label class="card__repeat-day" for="repeat-${day}"
-            >${day}</label
-          >
-        `).join(``) }
-      </div>
-    </fieldset>
+    ${taskData.isRepeating ? `
+      <fieldset class="card__repeat-days">
+        <div class="card__repeat-days-inner">
+          ${Object.entries(taskData.repeatingDays).map(([day, repeat]) => `
+            <input
+              class="visually-hidden card__repeat-day-input"
+              type="checkbox"
+              id="repeat-${day}"
+              name="repeat"
+              value="${day}"
+              ${repeat ? `checked` : ``}
+            />
+            <label class="card__repeat-day" for="repeat-${day}"
+              >${day}</label
+            >
+          `).join(``) }
+        </div>
+      </fieldset>
+    ` : ``}
   `;
 };
 
-const createTaskEditorColorsTemplate = function (task) {
+const createTaskEditorColorsTemplate = function (taskData) {
   return COLORS.map((color) => `
     <input
       type="radio"
@@ -76,7 +78,7 @@ const createTaskEditorColorsTemplate = function (task) {
       class="card__color-input card__color-input--${color} visually-hidden"
       name="color"
       value="${color}"
-      ${color === task.color ? `checked` : ``}
+      ${color === taskData.color ? `checked` : ``}
     />
     <label
       for="color-${color}"
@@ -86,16 +88,21 @@ const createTaskEditorColorsTemplate = function (task) {
   `).join(``);
 };
 
-const createTaskEditorTemplate = function (task) {
-  const {description, color} = task;
+const createTaskEditorTemplate = function (taskData) {
+  const {description, color, isRepeating} = taskData;
 
-  const taskDateTemplate = createTaskEditorDateTemplate(task);
-  const taskRepeatingDaysTemplate = createTaskEditorRepeatingDaysTemplate(task);
-  const taskColorsTemplate = createTaskEditorColorsTemplate(task);
+  const taskDateTemplate = createTaskEditorDateTemplate(taskData);
+  const taskRepeatingDaysTemplate = createTaskEditorRepeatingDaysTemplate(taskData);
+  const taskColorsTemplate = createTaskEditorColorsTemplate(taskData);
 
-  const deadlineClass = isTaskExpired(task) ? `card--deadline` : ``;
-  const repeatingClass = isTaskRepeating(task) ? `card--repeat` : ``;
+  const deadlineClass = isTaskExpired(taskData) ? `card--deadline` : ``;
+  const repeatingClass = isRepeating ? `card--repeat` : ``;
   const colorClass = `card--${color}`;
+
+  const saveDisabledAttribute =
+    taskData.isRepeating && !isTaskRepeating(taskData)
+    || taskData.hasDueDate && taskData.dueDate === null
+      ? `disabled` : ``;
 
   return `
     <article class="card card--edit ${colorClass} ${repeatingClass} ${deadlineClass}">
@@ -134,7 +141,7 @@ const createTaskEditorTemplate = function (task) {
           </div>
 
           <div class="card__status-btns">
-            <button class="card__save" type="submit">save</button>
+            <button class="card__save" type="submit" ${saveDisabledAttribute}>save</button>
             <button class="card__delete" type="button">delete</button>
           </div>
         </div>
@@ -143,16 +150,22 @@ const createTaskEditorTemplate = function (task) {
   `;
 };
 
-export default class TaskEditor extends ComponentView {
-  constructor(task) {
+export default class TaskEditor extends SmartComponentView {
+  constructor(task = BLANK_TASK) {
     super();
-    this._task = task || BLANK_TASK;
+
+    this._data = TaskEditor.convertTaskToData(task);
 
     this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._repeatingButtonClickHandler = this._repeatingButtonClickHandler.bind(this);
+    this._dueDateButtonClickHandler = this._dueDateButtonClickHandler.bind(this);
+    this._descriptionChangeHandler = this._descriptionChangeHandler.bind(this);
+    this._colorChangeHandler = this._colorChangeHandler.bind(this);
+    this._repeatChangeHandler = this._repeatChangeHandler.bind(this);
   }
 
   getTemplate() {
-    return createTaskEditorTemplate(this._task);
+    return createTaskEditorTemplate(this._data);
   }
 
   _formSubmitHandler(evt) {
@@ -163,5 +176,78 @@ export default class TaskEditor extends ComponentView {
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
     this.getElement().querySelector(`form`).addEventListener(`submit`, this._formSubmitHandler);
+  }
+
+  _repeatingButtonClickHandler(evt) {
+    evt.preventDefault();
+    this._updateData({
+      isRepeating: !this._data.isRepeating,
+      hasDueDate: false
+    });
+  }
+
+  _dueDateButtonClickHandler(evt) {
+    evt.preventDefault();
+    this._updateData({
+      hasDueDate: !this._data.hasDueDate,
+      isRepeating: false
+    });
+  }
+
+  _descriptionChangeHandler(evt) {
+    this._updateData({description: evt.target.value}, false);
+  }
+
+  _colorChangeHandler(evt) {
+    this._updateData({color: evt.target.value});
+  }
+
+  _repeatChangeHandler(evt) {
+    this._updateData({
+      repeatingDays: Object.assign(
+          {},
+          this._data.repeatingDays,
+          {[evt.target.value]: evt.target.checked}
+      )
+    }, false);
+  }
+
+
+  _setInnerHandlers() {
+    this.getElement().querySelector(`.card__repeat-toggle`).addEventListener(`click`, this._repeatingButtonClickHandler);
+    this.getElement().querySelector(`.card__date-deadline-toggle`).addEventListener(`click`, this._dueDateButtonClickHandler);
+
+    this.getElement().querySelector(`.card__text`).addEventListener(`change`, this._descriptionChangeHandler);
+    this.getElement().querySelector(`.card__colors-wrap`).addEventListener(`change`, this._colorChangeHandler);
+    if (this._data.isRepeating) {
+      this.getElement().querySelector(`.card__repeat-days-inner`).addEventListener(`change`, this._repeatChangeHandler);
+    }
+  }
+
+  static convertTaskToData(task) {
+    return Object.assign(
+        {},
+        task,
+        {
+          isRepeating: isTaskRepeating(task),
+          hasDueDate: Boolean(task.dueDate)
+        }
+    );
+  }
+
+  static convertDataToTask(taskData) {
+    const result = Object.assign({}, taskData);
+
+    if (!result.isRepeating) {
+      Object.assign(result.repeatingDays, BLANK_TASK.repeatingDays);
+    }
+    if (!result.hasDueDate) {
+      result.dueDate = null;
+    }
+
+    delete result.isRepeating;
+    delete result.hasDueDate;
+
+    return result;
   }
 }
