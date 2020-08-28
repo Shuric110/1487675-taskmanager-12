@@ -2,6 +2,7 @@ import TaskView from "../view/task.js";
 import TaskEditorView from "../view/task-editor.js";
 
 import {RenderPosition, replace, replaceOrRender, remove} from "../util/render.js";
+import {UpdateAction} from "../const.js";
 
 export default class Task {
   constructor(taskContainer) {
@@ -100,13 +101,19 @@ export default class Task {
 
   _onEditorFavouriteClick() {
     if (this._dataChangeHandler) {
-      this._dataChangeHandler(Object.assign({}, this._task, {isFavorite: !this._task.isFavorite}));
+      this._dataChangeHandler(
+          UpdateAction.TASK_UPDATE,
+          Object.assign({}, this._task, {isFavorite: !this._task.isFavorite})
+      );
     }
   }
 
   _onEditorArchiveClick() {
     if (this._dataChangeHandler) {
-      this._dataChangeHandler(Object.assign({}, this._task, {isArchive: !this._task.isArchive}));
+      this._dataChangeHandler(
+          UpdateAction.TASK_UPDATE,
+          Object.assign({}, this._task, {isArchive: !this._task.isArchive})
+      );
     }
   }
 

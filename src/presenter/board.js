@@ -7,15 +7,16 @@ import LoadMoreView from "../view/load-more.js";
 import TaskPresenter from "./task";
 
 import {RenderPosition, render, remove} from "../util/render.js";
-import {updateItem} from "../util/common.js";
 import {SORT_TYPES} from "../const.js";
 
 
 const TASK_LOAD_COUNT = 8;
 
 export default class Board {
-  constructor(container) {
+  constructor(container, tasksModel) {
     this._boardContainer = container;
+    this._tasksModel = tasksModel;
+    this._tasks = null;
 
     this._boardComponent = new BoardView();
     this._taskListComponent = new TaskListView();
@@ -27,41 +28,60 @@ export default class Board {
 
     this._taskPresenters = {};
 
+    this._onViewAction = this._onViewAction.bind(this);
+    this._onModelEvent = this._onModelEvent.bind(this);
     this._onLoadMoreClick = this._onLoadMoreClick.bind(this);
     this._onSortChange = this._onSortChange.bind(this);
     this._onTaskChange = this._onTaskChange.bind(this);
     this._onTaskModeChange = this._onTaskModeChange.bind(this);
+
+    this._tasksModel.addObserver(this._onModelEvent);
   }
 
-  init(tasks) {
-    this._tasks = tasks.slice();
-    this._sourceTasks = tasks.slice();
-
+  init() {
     render(this._boardContainer, this._boardComponent, RenderPosition.BEFOREEND);
     this._renderBoardContent();
   }
 
 
+  _getTasks() {
+    if (this._tasks === null) {
+      this._tasks = this._tasksModel.getTasks().slice();
+
+      const {compare} = SORT_TYPES[this._currentSortMode];
+      if (compare) { // Если функция сравнения не определена, то не сортируем - подразумевается сортировка по умолчанию
+        this._tasks.sort(compare);
+      }
+    }
+    return this._tasks;
+  }
+
+  _onViewAction(updateAction, update) {
+
+  }
+
+  _onModelEvent(updateAction, update) {
+
+  }
+
   _renderTask(task) {
     const taskPresenter = new TaskPresenter(this._taskListComponent);
     taskPresenter.init(task);
-    taskPresenter.setDataChangeHandler(this._onTaskChange);
+    taskPresenter.setDataChangeHandler(this._onViewAction);
     taskPresenter.setModeChangeHandler(this._onTaskModeChange);
 
     this._taskPresenters[task.id] = taskPresenter;
   }
 
   _renderTasks(count) {
-    const firstTaskIndex = this._renderedTasksCount;
-    const lastTaskIndex = Math.min(this._tasks.length - 1, firstTaskIndex + count - 1);
+    const nextTasks = this._getTasks().slice(this._renderedTasksCount, this._renderedTasksCount + count);
+    nextTasks.forEach((task) => {
+      this._renderTask(task);
+    });
 
-    for (let i = firstTaskIndex; i <= lastTaskIndex; i++) {
-      this._renderTask(this._tasks[i]);
-    }
+    this._renderedTasksCount += nextTasks.length;
 
-    this._renderedTasksCount = lastTaskIndex + 1;
-
-    if (this._renderedTasksCount >= this._tasks.length) {
+    if (this._renderedTasksCount >= this._getTasks().length) {
       remove(this._loadMoreComponent);
     }
   }
@@ -76,8 +96,8 @@ export default class Board {
   }
 
   _onTaskChange(newTask) {
-    updateItem(this._tasks, newTask);
-    updateItem(this._sourceTasks, newTask);
+    // ****** тут обновление таска через модель!
+
     this._taskPresenters[newTask.id].init(newTask);
   }
 
@@ -94,6 +114,7 @@ export default class Board {
   }
 
   _onSortChange(sortMode) {
+    // ****** потом здесь вызывать изменение сортировки в модели
     if (sortMode === this._currentSortMode) {
       return;
     }
@@ -101,18 +122,11 @@ export default class Board {
     this._sortTasks(sortMode);
     this._clearTaskListContent();
     this._renderTaskListContent();
-
-    this._currentSortMode = sortMode;
   }
 
   _sortTasks(sortMode) {
-    const {compare} = SORT_TYPES[sortMode];
-    if (!compare) {
-      // Если функция сравнения не определена, то подразумевается сортировка по умолчанию
-      this._tasks = this._sourceTasks.slice();
-    } else {
-      this._tasks.sort(compare);
-    }
+    this._currentSortMode = sortMode;
+    this._tasks = null;
   }
 
   _renderLoadMore() {
@@ -124,7 +138,7 @@ export default class Board {
     this._renderedTasksCount = 0;
     this._renderTasks(TASK_LOAD_COUNT);
 
-    if (this._renderedTasksCount < this._tasks.length && !this._loadMoreComponent.getHasElement()) {
+    if (this._renderedTasksCount < this._getTasks().length && !this._loadMoreComponent.getHasElement()) {
       this._renderLoadMore();
     }
   }
@@ -138,7 +152,7 @@ export default class Board {
   }
 
   _renderBoardContent() {
-    if (this._tasks.every((task) => task.isArchive)) {
+    if (this._getTasks().every((task) => task.isArchive)) {
       this._renderNoTasks();
       return;
     }
