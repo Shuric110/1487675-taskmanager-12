@@ -31,7 +31,7 @@ export default class Filter {
 
     const oldFilterComponent = this._filterComponent;
     this._filterComponent = new FilterView(filters, this._currentFilter);
-    this._filterComponent.setFilterTypeChangeHandler(this._handleFilterTypeChange);
+    this._filterComponent.setFilterTypeChangeHandler(this._onFilterTypeChange);
 
     replaceOrRender(this._filterContainer, this._filterComponent, oldFilterComponent, RenderPosition.BEFOREEND);
     remove(oldFilterComponent);
