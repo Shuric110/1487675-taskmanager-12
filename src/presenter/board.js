@@ -205,6 +205,7 @@ export default class Board {
     Object.values(this._taskPresenters).forEach(function (taskPresenter) {
       taskPresenter.destroy();
     });
+    this._taskPresenters = {};
 
     remove(this._taskListComponent);
     remove(this._sortComponent);
