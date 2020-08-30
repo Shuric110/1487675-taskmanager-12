@@ -22,10 +22,8 @@ export default class TaskNew {
     this._dataChangeHandler = dataChangeHandler;
   }
 
-  init(task) {
-    this._task = task;
-
-    this._taskEditorComponent = new TaskEditorView(this._task);
+  init() {
+    this._taskEditorComponent = new TaskEditorView();
     this._taskEditorComponent.setFormSubmitHandler(this._onFormSubmit);
     this._taskEditorComponent.setDeleteClickHandler(this._onDeleteClick);
 
