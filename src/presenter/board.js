@@ -20,6 +20,7 @@ export default class Board {
     this._boardContainer = container;
     this._tasksModel = tasksModel;
     this._boardModel = boardModel;
+    this._initialized = false;
     this._tasks = null;
 
     this._sortComponent = null;
@@ -49,15 +50,28 @@ export default class Board {
   init() {
     this._currentSort = this._boardModel.getSort();
     this._currentFilter = this._boardModel.getFilter();
+    this._tasks = null;
+    this._renderedTasksCount = 0;
 
     render(this._boardContainer, this._boardComponent, RenderPosition.BEFOREEND);
     this._renderBoardContent();
+    this._initialized = true;
   }
 
-  createTask() {
+  destroy() {
+    this._initialized = false;
+    this._clearBoardContent();
+    remove(this._boardComponent);
+  }
+
+  createTask(newTaskFormCloseHandler) {
     this._boardModel.setFilter(FilterType.ALL);
     this._boardModel.setSort(SortType.DEFAULT);
-    this._taskNewPresenter.init();
+    this._taskNewPresenter.init(newTaskFormCloseHandler);
+  }
+
+  cancelCreateTask() {
+    this._taskNewPresenter.destroy();
   }
 
   _getTasks() {
@@ -87,6 +101,10 @@ export default class Board {
   }
 
   _onModelEvent(updateAction, update) {
+    if (!this._initialized) {
+      return;
+    }
+
     switch (updateAction) {
       case UpdateAction.TASK_ADD:
         this._refreshBoard(true);

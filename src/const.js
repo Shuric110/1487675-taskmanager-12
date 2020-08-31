@@ -7,3 +7,9 @@ export const UpdateAction = {
   SORT_UPDATE: `SORT_UPDATE`,
   FILTER_UPDATE: `FILTER_UPDATE`
 };
+
+export const MenuItem = {
+  ADD_NEW_TASK: `ADD_NEW_TASK`,
+  TASKS: `TASKS`,
+  STATISTICS: `STATISTICS`
+};
