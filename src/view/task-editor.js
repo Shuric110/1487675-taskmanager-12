@@ -225,7 +225,7 @@ export default class TaskEditor extends SmartComponentView {
           this._data.repeatingDays,
           {[evt.target.value]: evt.target.checked}
       )
-    }, true);
+    });
   }
 
   _dueDateChangeHandler(selectedDates) {
