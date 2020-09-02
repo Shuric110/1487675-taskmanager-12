@@ -1,17 +1,20 @@
 import ComponentView from "./component.js";
-import {SORT_TYPES} from "../const.js";
 
 export default class Sort extends ComponentView {
-  constructor() {
+  constructor(definitions, currentSort) {
     super();
+
+    this._definitions = definitions;
+    this._currentSort = currentSort;
+
     this._sortChangeHandler = this._sortChangeHandler.bind(this);
   }
 
   getTemplate() {
     return `
       <div class="board__filter-list">
-        ${Object.entries(SORT_TYPES).map(([code, {title}]) => `
-          <a href="#" class="board__filter" data-sort="${code}">SORT BY ${title}</a>
+        ${this._definitions.map(({code, title}) => `
+          <a href="#" class="board__filter ${code === this._currentSort.code ? `board__filter--active` : ``}" data-sort="${code}">SORT BY ${title}</a>
         `).join(``)}
       </div>
     `;

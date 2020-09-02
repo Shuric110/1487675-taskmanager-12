@@ -161,6 +161,7 @@ export default class TaskEditor extends SmartComponentView {
     this._datePicker = null;
 
     this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._deleteClickHandler = this._deleteClickHandler.bind(this);
     this._repeatingButtonClickHandler = this._repeatingButtonClickHandler.bind(this);
     this._dueDateButtonClickHandler = this._dueDateButtonClickHandler.bind(this);
     this._descriptionChangeHandler = this._descriptionChangeHandler.bind(this);
@@ -175,12 +176,22 @@ export default class TaskEditor extends SmartComponentView {
 
   _formSubmitHandler(evt) {
     evt.preventDefault();
-    this._callback.formSubmit();
+    this._callback.formSubmit(TaskEditor.convertDataToTask(this._data));
+  }
+
+  _deleteClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.deleteClick(TaskEditor.convertDataToTask(this._data));
   }
 
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
     this.getElement().querySelector(`form`).addEventListener(`submit`, this._formSubmitHandler);
+  }
+
+  setDeleteClickHandler(callback) {
+    this._callback.deleteClick = callback;
+    this.getElement().querySelector(`.card__delete`).addEventListener(`click`, this._deleteClickHandler);
   }
 
   _repeatingButtonClickHandler(evt) {
@@ -200,7 +211,7 @@ export default class TaskEditor extends SmartComponentView {
   }
 
   _descriptionChangeHandler(evt) {
-    this._updateData({description: evt.target.value}, false);
+    this._updateData({description: evt.target.value}, true);
   }
 
   _colorChangeHandler(evt) {
@@ -214,7 +225,7 @@ export default class TaskEditor extends SmartComponentView {
           this._data.repeatingDays,
           {[evt.target.value]: evt.target.checked}
       )
-    }, false);
+    });
   }
 
   _dueDateChangeHandler(selectedDates) {

@@ -5,10 +5,7 @@ export const isTaskExpired = function (task) {
     return false;
   }
 
-  const now = new Date();
-  const expireDate = new Date(task.dueDate);
-  expireDate.setDate(expireDate.getDate() + 1);
-  return now.getTime() >= expireDate.getTime();
+  return moment().isAfter(task.dueDate, `day`);
 };
 
 export const isTaskExpiresToday = function (task) {
@@ -16,10 +13,7 @@ export const isTaskExpiresToday = function (task) {
     return false;
   }
 
-  const now = new Date();
-  const expireDate = new Date(task.dueDate);
-  expireDate.setDate(expireDate.getDate() + 1);
-  return task.dueDate.getTime() <= now.getTime() && now.getTime() < expireDate.getTime();
+  return moment().isSame(task.dueDate, `day`);
 };
 
 export const isTaskRepeating = function (task) {

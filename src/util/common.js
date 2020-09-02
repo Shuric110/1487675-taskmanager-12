@@ -1,3 +1,5 @@
+import he from "he";
+
 export const getRandomInteger = function (a = 0, b = 1) {
   const lower = Math.ceil(Math.min(a, b));
   const upper = Math.floor(Math.max(a, b));
@@ -10,18 +12,5 @@ export const getRandomElement = function (elements) {
 };
 
 export const escapeHtml = function (html) {
-  return html
-    .replace(/&/g, `&amp;`)
-    .replace(/</g, `&lt;`)
-    .replace(/>/g, `&gt;`)
-    .replace(/"/g, `&quot;`)
-    .replace(/'/g, `&#039;`);
-};
-
-export const updateItem = function (items, update) {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index >= 0) {
-    items[index] = update;
-  }
+  return he.encode(html);
 };

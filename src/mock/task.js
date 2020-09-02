@@ -8,7 +8,7 @@ const DESCRIPTIONS = [
   `Пройти интенсив на соточку`
 ];
 
-const taskIdSequence = {
+export const taskIdSequence = {
   _currentValue: 0,
 
   getNextValue() {
