@@ -55,8 +55,9 @@ const onMenuClick = function (menuItem) {
       break;
     case MenuItem.STATISTICS:
       boardPresenter.destroy();
-      statisticsComponent = new StatisticsView(tasksModel);
-      render(mainControlElement, statisticsComponent);
+      statisticsComponent = new StatisticsView(tasksModel.getTasks());
+      render(mainElement, statisticsComponent, RenderPosition.BEFOREEND);
+      statisticsComponent.renderCharts();
       break;
   }
 };
