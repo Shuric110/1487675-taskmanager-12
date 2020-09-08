@@ -22,7 +22,9 @@ export default class TaskNew {
     this._dataChangeHandler = dataChangeHandler;
   }
 
-  init() {
+  init(formCloseHandler) {
+    this._formCloseHandler = formCloseHandler;
+
     this._taskEditorComponent = new TaskEditorView();
     this._taskEditorComponent.setFormSubmitHandler(this._onFormSubmit);
     this._taskEditorComponent.setDeleteClickHandler(this._onDeleteClick);
@@ -59,5 +61,8 @@ export default class TaskNew {
   destroy() {
     remove(this._taskEditorComponent);
     document.removeEventListener(`keydown`, this._onEscKeyDown);
+    if (this._formCloseHandler) {
+      this._formCloseHandler();
+    }
   }
 }
