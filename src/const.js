@@ -17,6 +17,7 @@ export const colorValues = {
 };
 
 export const UpdateAction = {
+  TASKS_INIT: `TASKS_INIT`,
   TASK_UPDATE: `TASK_UPDATE`,
   TASK_ADD: `TASK_ADD`,
   TASK_DELETE: `TASK_DELETE`,

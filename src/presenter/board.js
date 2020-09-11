@@ -3,6 +3,7 @@ import SortView from "../view/sort.js";
 import NoTasksView from "../view/no-tasks.js";
 import TaskListView from "../view/task-list.js";
 import LoadMoreView from "../view/load-more.js";
+import LoadingView from "../view/loading.js";
 
 import TaskPresenter from "./task.js";
 import TaskNewPresenter from "./task-new.js";
@@ -16,12 +17,14 @@ import {UpdateAction} from "../const.js";
 const TASK_LOAD_COUNT = 8;
 
 export default class Board {
-  constructor(container, tasksModel, boardModel) {
+  constructor(container, tasksModel, boardModel, api) {
     this._boardContainer = container;
     this._tasksModel = tasksModel;
     this._boardModel = boardModel;
+    this._api = api;
     this._initialized = false;
     this._tasks = null;
+    this._isLoading = true;
 
     this._sortComponent = null;
 
@@ -29,6 +32,7 @@ export default class Board {
     this._taskListComponent = new TaskListView();
     this._loadMoreComponent = new LoadMoreView();
     this._noTaskComponent = new NoTasksView();
+    this._loadingComponent = new LoadingView();
 
     this._currentSort = null;
     this._currentFilter = null;
@@ -92,7 +96,9 @@ export default class Board {
         this._tasksModel.addTask(update);
         break;
       case UpdateAction.TASK_UPDATE:
-        this._tasksModel.updateTask(update);
+        this._api.updateTask(update).then((response) => {
+          this._tasksModel.updateTask(response);
+        });
         break;
       case UpdateAction.TASK_DELETE:
         this._tasksModel.deleteTask(update);
@@ -106,6 +112,11 @@ export default class Board {
     }
 
     switch (updateAction) {
+      case UpdateAction.TASKS_INIT:
+        this._isLoading = false;
+        this._refreshBoard(false);
+        break;
+
       case UpdateAction.TASK_ADD:
         this._refreshBoard(true);
         break;
@@ -180,6 +191,10 @@ export default class Board {
     render(this._boardContainer, this._noTaskComponent, RenderPosition.BEFOREEND);
   }
 
+  _renderLoading() {
+    render(this._boardComponent, this._loadingComponent, RenderPosition.BEFOREEND);
+  }
+
   _renderSort() {
     this._sortComponent = new SortView(this._boardModel.getSortDefinitions(), this._currentSort);
     render(this._boardComponent, this._sortComponent, RenderPosition.BEFOREEND);
@@ -229,9 +244,15 @@ export default class Board {
     remove(this._sortComponent);
     remove(this._noTaskComponent);
     remove(this._loadMoreComponent);
+    remove(this._loadingComponent);
   }
 
   _renderBoardContent() {
+    if (this._isLoading) {
+      this._renderLoading();
+      return;
+    }
+
     const tasks = this._getTasks();
 
     if (tasks.length === 0) {

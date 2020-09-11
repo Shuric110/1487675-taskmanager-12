@@ -11,23 +11,27 @@ import {RenderPosition, render, remove} from "./util/render.js";
 
 import {MenuItem} from "./const.js";
 
-import {generateTasks} from "./mock/task.js";
+import TasksApi from "./util/tasks-api.js";
+import ApiAdapter from "./util/api-adapter.js";
 
-const TASK_COUNT = 20;
-
-const tasks = generateTasks(TASK_COUNT);
-
-const boardModel = new BoardModel();
-const tasksModel = new TasksModel();
-tasksModel.setTasks(tasks);
+const API_AUTH_TOKEN = `hS2sd3dfSwcl1sa2j`;
+const API_URL = `https://12.ecmascript.pages.academy/task-manager`;
 
 const mainElement = document.querySelector(`.main`);
 const mainControlElement = mainElement.querySelector(`.main__control`);
 
+const api = new TasksApi(API_URL, API_AUTH_TOKEN);
+const apiAdapter = new ApiAdapter(api);
+
+const boardModel = new BoardModel();
+const tasksModel = new TasksModel();
+
+
 const menuComponent = new MenuView();
 
-const boardPresenter = new BoardPresenter(mainElement, tasksModel, boardModel);
+const boardPresenter = new BoardPresenter(mainElement, tasksModel, boardModel, apiAdapter);
 const filterPresenter = new FilterPresenter(mainElement, tasksModel, boardModel);
+
 
 let statisticsComponent = null;
 
@@ -62,8 +66,17 @@ const onMenuClick = function (menuItem) {
   }
 };
 
-menuComponent.setMenuClickHandler(onMenuClick);
-render(mainControlElement, menuComponent, RenderPosition.BEFOREEND);
-
 filterPresenter.init();
 boardPresenter.init();
+
+apiAdapter.getTasks()
+  .then((tasks) => {
+    tasksModel.setTasks(tasks);
+  })
+  .catch(() => {
+    tasksModel.setTasks([]);
+  })
+  .finally(() => {
+    menuComponent.setMenuClickHandler(onMenuClick);
+    render(mainControlElement, menuComponent, RenderPosition.BEFOREEND);
+  });

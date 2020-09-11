@@ -9,6 +9,7 @@ export default class Tasks extends Observable {
 
   setTasks(tasks) {
     this._tasks = tasks.slice();
+    this._notify(UpdateAction.TASKS_INIT, null);
   }
 
   getTasks() {
