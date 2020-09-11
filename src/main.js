@@ -14,7 +14,7 @@ import {MenuItem} from "./const.js";
 import TasksApi from "./util/tasks-api.js";
 import ApiAdapter from "./util/api-adapter.js";
 
-const API_AUTH_TOKEN = `hS2sd3dfSwcl1sa2j`;
+const API_AUTH_TOKEN = `df5gd4lh3jh3ljk4j`;
 const API_URL = `https://12.ecmascript.pages.academy/task-manager`;
 
 const mainElement = document.querySelector(`.main`);
