@@ -3,7 +3,14 @@ import TaskEditorView from "../view/task-editor.js";
 import {RenderPosition, render, remove} from "../util/render.js";
 import {UpdateAction} from "../const.js";
 
-import {taskIdSequence} from "../mock/task.js";
+const taskIdSequence = {
+  _currentValue: 0,
+
+  getNextValue() {
+    this._currentValue++;
+    return `task-` + this._currentValue;
+  }
+};
 
 export default class TaskNew {
   constructor(taskContainer) {
