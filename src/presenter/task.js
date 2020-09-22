@@ -9,6 +9,8 @@ export default class Task {
     this._taskContainer = taskContainer;
 
     this._isEditing = false;
+    this._isSaving = false;
+    this._isDeleting = false;
     this._taskComponent = null;
     this._taskEditorComponent = null;
 
@@ -45,7 +47,12 @@ export default class Task {
     this._taskComponent.setArchiveClickHandler(this._onEditorArchiveClick);
 
     if (oldTaskEditorComponent) {
-      this._makeEditor(oldTaskEditorComponent);
+      if (this._isSaving) {
+        replaceOrRender(this._taskContainer, this._taskComponent, oldTaskEditorComponent, RenderPosition.BEFOREEND);
+        this._isSaving = false;
+      } else {
+        this._makeEditor(oldTaskEditorComponent);
+      }
     } else {
       replaceOrRender(this._taskContainer, this._taskComponent, oldTaskComponent, RenderPosition.BEFOREEND);
     }
@@ -54,13 +61,49 @@ export default class Task {
     remove(oldTaskEditorComponent);
   }
 
+  setSaving() {
+    this._isSaving = true;
+    if (this._isEditing) {
+      this._taskEditorComponent.updateData({
+        isDisabled: true,
+        isSaving: true
+      });
+    }
+  }
+
+  setDeleting() {
+    this._isDeleting = true;
+    if (this._isEditing) {
+      this._taskEditorComponent.updateData({
+        isDisabled: true,
+        isDeleting: true
+      });
+    }
+  }
+
+  setAborting() {
+    const activeComponent = this._isEditing ? this._taskEditorComponent : this._taskComponent;
+
+    activeComponent.shake(() => {
+      this._isSaving = false;
+      this._isDeleting = false;
+      if (this._taskEditorComponent) {
+        this._taskEditorComponent.updateData({
+          isDisabled: false,
+          isSaving: false,
+          isDeleting: false
+        });
+      }
+    });
+  }
+
   _makeEditor(insteadComponent) {
     if (this._modeChangeHandler && !this._isEditing) {
       this._modeChangeHandler(this, true);
     }
     this._isEditing = true;
 
-    this._taskEditorComponent = new TaskEditorView(this._task);
+    this._taskEditorComponent = new TaskEditorView(this._task, {isSaving: this._isSaving, isDeleting: this._isDeleting});
     this._taskEditorComponent.setFormSubmitHandler(this._onFormSubmit);
     this._taskEditorComponent.setDeleteClickHandler(this._onDeleteClick);
     document.addEventListener(`keydown`, this._onEscKeyDown);
@@ -100,8 +143,6 @@ export default class Task {
           task
       );
     }
-
-    this._switchToView();
   }
 
   _onDeleteClick(task) {

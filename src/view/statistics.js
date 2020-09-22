@@ -196,7 +196,7 @@ export default class Statistics extends SmartComponentView {
       return;
     }
 
-    this._updateData({
+    this.updateData({
       dateFrom,
       dateTo,
       statistics: calculateStatistics(this._data.tasks, dateFrom, dateTo)

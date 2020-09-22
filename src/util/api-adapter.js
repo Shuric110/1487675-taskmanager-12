@@ -13,6 +13,15 @@ export default class ApiAdapter {
       .then(ApiAdapter.convertTaskApiToClient);
   }
 
+  addTask(task) {
+    return this._api.addTask(ApiAdapter.convertTaskClientToApi(task))
+      .then(ApiAdapter.convertTaskApiToClient);
+  }
+
+  deleteTask(task) {
+    return this._api.deleteTask(ApiAdapter.convertTaskClientToApi(task));
+  }
+
   static convertTasksApiToClient(apiTasks) {
     return apiTasks.map((apiTask) => ApiAdapter.convertTaskApiToClient(apiTask));
   }

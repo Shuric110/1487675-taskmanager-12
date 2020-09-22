@@ -1,6 +1,8 @@
 const Method = {
   GET: `GET`,
-  PUT: `PUT`
+  PUT: `PUT`,
+  POST: `POST`,
+  DELETE: `DELETE`
 };
 
 const SuccessHTTPStatusRange = {
@@ -17,13 +19,6 @@ export default class TasksApi {
   getTasks() {
     return this._query({url: `tasks`})
       .then(TasksApi.toJSON);
-    /*
-      .then((result) => {
-        return new Promise((resolve) => {
-          setTimeout(() => resolve(result), 2000);
-        });
-      });
-      */
   }
 
   updateTask(task) {
@@ -34,6 +29,23 @@ export default class TasksApi {
       headers: new Headers({"Content-Type": `application/json`})
     })
       .then(TasksApi.toJSON);
+  }
+
+  addTask(task) {
+    return this._query({
+      url: `tasks`,
+      method: Method.POST,
+      body: JSON.stringify(task),
+      headers: new Headers({"Content-Type": `application/json`})
+    })
+      .then(TasksApi.toJSON);
+  }
+
+  deleteTask(task) {
+    return this._query({
+      url: `tasks/${task.id}`,
+      method: Method.DELETE
+    });
   }
 
   _query({
