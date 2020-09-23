@@ -48,6 +48,16 @@ export default class TasksApi {
     });
   }
 
+  sync(tasks) {
+    return this._query({
+      url: `tasks/sync`,
+      method: Method.POST,
+      body: JSON.stringify(tasks),
+      headers: new Headers({"Content-Type": `application/json`})
+    })
+      .then(TasksApi.toJSON);
+  }
+
   _query({
     url,
     method = Method.GET,
