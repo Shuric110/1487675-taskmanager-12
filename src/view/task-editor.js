@@ -23,13 +23,13 @@ const BLANK_TASK = {
   isFavorite: false
 };
 
-const createTaskEditorDateTemplate = function (taskData) {
+const createTaskEditorDateTemplate = function ({hasDueDate, dueDate, isDisabled}) {
   return `
-    <button class="card__date-deadline-toggle" type="button">
-      date: <span class="card__date-status">${taskData.hasDueDate ? `yes` : `no`}</span>
+    <button class="card__date-deadline-toggle" type="button" ${isDisabled ? `disabled` : ``}>
+      date: <span class="card__date-status">${hasDueDate ? `yes` : `no`}</span>
     </button>
 
-    ${taskData.hasDueDate ? `
+    ${hasDueDate ? `
         <fieldset class="card__date-deadline">
           <label class="card__input-deadline-wrap">
             <input
@@ -37,7 +37,8 @@ const createTaskEditorDateTemplate = function (taskData) {
               type="text"
               placeholder=""
               name="date"
-              value="${formatTaskDueDate(taskData.dueDate)}"
+              value="${formatTaskDueDate(dueDate)}"
+              ${isDisabled ? `disabled` : ``}
             />
           </label>
         </fieldset>
@@ -45,16 +46,16 @@ const createTaskEditorDateTemplate = function (taskData) {
   `;
 };
 
-const createTaskEditorRepeatingDaysTemplate = function (taskData) {
+const createTaskEditorRepeatingDaysTemplate = function ({isRepeating, repeatingDays, isDisabled}) {
   return `
-    <button class="card__repeat-toggle" type="button">
-      repeat:<span class="card__repeat-status">${taskData.isRepeating ? `yes` : `no`}</span>
+    <button class="card__repeat-toggle" type="button" ${isDisabled ? `disabled` : ``}>
+      repeat:<span class="card__repeat-status">${isRepeating ? `yes` : `no`}</span>
     </button>
 
-    ${taskData.isRepeating ? `
+    ${isRepeating ? `
       <fieldset class="card__repeat-days">
         <div class="card__repeat-days-inner">
-          ${Object.entries(taskData.repeatingDays).map(([day, repeat]) => `
+          ${Object.entries(repeatingDays).map(([day, repeat]) => `
             <input
               class="visually-hidden card__repeat-day-input"
               type="checkbox"
@@ -73,7 +74,7 @@ const createTaskEditorRepeatingDaysTemplate = function (taskData) {
   `;
 };
 
-const createTaskEditorColorsTemplate = function (taskData) {
+const createTaskEditorColorsTemplate = function ({color: currentColor, isDisabled}) {
   return COLORS.map((color) => `
     <input
       type="radio"
@@ -81,7 +82,8 @@ const createTaskEditorColorsTemplate = function (taskData) {
       class="card__color-input card__color-input--${color} visually-hidden"
       name="color"
       value="${color}"
-      ${color === taskData.color ? `checked` : ``}
+      ${color === currentColor ? `checked` : ``}
+      ${isDisabled ? `disabled` : ``}
     />
     <label
       for="color-${color}"
@@ -92,7 +94,7 @@ const createTaskEditorColorsTemplate = function (taskData) {
 };
 
 const createTaskEditorTemplate = function (taskData) {
-  const {description, color, isRepeating} = taskData;
+  const {description, color, hasDueDate, dueDate, isRepeating, isDisabled, isSaving, isDeleting} = taskData;
 
   const taskDateTemplate = createTaskEditorDateTemplate(taskData);
   const taskRepeatingDaysTemplate = createTaskEditorRepeatingDaysTemplate(taskData);
@@ -102,8 +104,9 @@ const createTaskEditorTemplate = function (taskData) {
   const colorClass = `card--${color}`;
 
   const saveDisabledAttribute =
-    taskData.isRepeating && !isTaskRepeating(taskData)
-    || taskData.hasDueDate && taskData.dueDate === null
+    isRepeating && !isTaskRepeating(taskData)
+    || hasDueDate && dueDate === null
+    || isDisabled
       ? `disabled` : ``;
 
   return `
@@ -122,6 +125,7 @@ const createTaskEditorTemplate = function (taskData) {
                 class="card__text"
                 placeholder="Start typing your text here..."
                 name="text"
+                ${isDisabled ? `disabled` : ``}
               >${escapeHtml(description)}</textarea>
             </label>
           </div>
@@ -143,8 +147,8 @@ const createTaskEditorTemplate = function (taskData) {
           </div>
 
           <div class="card__status-btns">
-            <button class="card__save" type="submit" ${saveDisabledAttribute}>save</button>
-            <button class="card__delete" type="button">delete</button>
+            <button class="card__save" type="submit" ${saveDisabledAttribute}>${isSaving ? `saving...` : `save`}</button>
+            <button class="card__delete" type="button" ${isDisabled ? `disabled` : ``}>${isDeleting ? `deleting...` : `delete`}</button>
           </div>
         </div>
       </form>
@@ -153,10 +157,10 @@ const createTaskEditorTemplate = function (taskData) {
 };
 
 export default class TaskEditor extends SmartComponentView {
-  constructor(task = BLANK_TASK) {
+  constructor(task = BLANK_TASK, state = {isSaving: false, isDeleting: false}) {
     super();
 
-    this._data = TaskEditor.convertTaskToData(task);
+    this._data = TaskEditor.convertTaskToData(task, state);
 
     this._datePicker = null;
 
@@ -196,7 +200,7 @@ export default class TaskEditor extends SmartComponentView {
 
   _repeatingButtonClickHandler(evt) {
     evt.preventDefault();
-    this._updateData({
+    this.updateData({
       isRepeating: !this._data.isRepeating,
       hasDueDate: false
     });
@@ -204,22 +208,22 @@ export default class TaskEditor extends SmartComponentView {
 
   _dueDateButtonClickHandler(evt) {
     evt.preventDefault();
-    this._updateData({
+    this.updateData({
       hasDueDate: !this._data.hasDueDate,
       isRepeating: false
     });
   }
 
   _descriptionChangeHandler(evt) {
-    this._updateData({description: evt.target.value}, true);
+    this.updateData({description: evt.target.value}, true);
   }
 
   _colorChangeHandler(evt) {
-    this._updateData({color: evt.target.value});
+    this.updateData({color: evt.target.value});
   }
 
   _repeatChangeHandler(evt) {
-    this._updateData({
+    this.updateData({
       repeatingDays: Object.assign(
           {},
           this._data.repeatingDays,
@@ -229,7 +233,7 @@ export default class TaskEditor extends SmartComponentView {
   }
 
   _dueDateChangeHandler(selectedDates) {
-    this._updateData({
+    this.updateData({
       dueDate: selectedDates[0]
     });
   }
@@ -265,13 +269,16 @@ export default class TaskEditor extends SmartComponentView {
     this._setDatePicker();
   }
 
-  static convertTaskToData(task) {
+  static convertTaskToData(task, state = {isSaving: false, isDeleting: false}) {
     return Object.assign(
         {},
         task,
         {
           isRepeating: isTaskRepeating(task),
-          hasDueDate: Boolean(task.dueDate)
+          hasDueDate: Boolean(task.dueDate),
+          isDisabled: state.isSaving || state.isDeleting,
+          isSaving: state.isSaving,
+          isDeleting: state.isDeleting
         }
     );
   }
@@ -288,6 +295,10 @@ export default class TaskEditor extends SmartComponentView {
 
     delete result.isRepeating;
     delete result.hasDueDate;
+
+    delete result.isDisabled;
+    delete result.isSaving;
+    delete result.isDeleting;
 
     return result;
   }

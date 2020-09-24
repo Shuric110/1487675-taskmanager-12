@@ -3,15 +3,6 @@ import TaskEditorView from "../view/task-editor.js";
 import {RenderPosition, render, remove} from "../util/render.js";
 import {UpdateAction} from "../const.js";
 
-const taskIdSequence = {
-  _currentValue: 0,
-
-  getNextValue() {
-    this._currentValue++;
-    return `task-` + this._currentValue;
-  }
-};
-
 export default class TaskNew {
   constructor(taskContainer) {
     this._taskContainer = taskContainer;
@@ -58,18 +49,37 @@ export default class TaskNew {
     if (this._dataChangeHandler) {
       this._dataChangeHandler(
           UpdateAction.TASK_ADD,
-          Object.assign({id: taskIdSequence.getNextValue()}, task)
+          task
       );
     }
+  }
 
-    this.destroy();
+  setSaving() {
+    this._taskEditorComponent.updateData({
+      isDisabled: true,
+      isSaving: true
+    });
+  }
+
+  setAborting() {
+    this._taskEditorComponent.shake(() => {
+      this._taskEditorComponent.updateData({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false
+      });
+    });
   }
 
   destroy() {
-    remove(this._taskEditorComponent);
-    document.removeEventListener(`keydown`, this._onEscKeyDown);
-    if (this._formCloseHandler) {
-      this._formCloseHandler();
+    if (this._taskEditorComponent) {
+      remove(this._taskEditorComponent);
+      document.removeEventListener(`keydown`, this._onEscKeyDown);
+      if (this._formCloseHandler) {
+        this._formCloseHandler();
+        this._formCloseHandler = null;
+      }
+      this._taskEditorComponent = null;
     }
   }
 }

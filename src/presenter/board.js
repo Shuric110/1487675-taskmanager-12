@@ -93,15 +93,34 @@ export default class Board {
   _onViewAction(updateAction, update) {
     switch (updateAction) {
       case UpdateAction.TASK_ADD:
-        this._tasksModel.addTask(update);
+        this._taskNewPresenter.setSaving();
+        this._api.addTask(update)
+          .then((response) => {
+            this._tasksModel.addTask(response);
+          })
+          .catch(() => {
+            this._taskNewPresenter.setAborting();
+          });
         break;
       case UpdateAction.TASK_UPDATE:
-        this._api.updateTask(update).then((response) => {
-          this._tasksModel.updateTask(response);
-        });
+        this._taskPresenters[update.id].setSaving();
+        this._api.updateTask(update)
+          .then((response) => {
+            this._tasksModel.updateTask(response);
+          })
+          .catch(() => {
+            this._taskPresenters[update.id].setAborting();
+          });
         break;
       case UpdateAction.TASK_DELETE:
-        this._tasksModel.deleteTask(update);
+        this._taskPresenters[update.id].setDeleting();
+        this._api.deleteTask(update)
+          .then(() => {
+            this._tasksModel.deleteTask(update);
+          })
+          .catch(() => {
+            this._taskPresenters[update.id].setAborting();
+          });
         break;
     }
   }
@@ -235,6 +254,8 @@ export default class Board {
   }
 
   _clearBoardContent() {
+    this._taskNewPresenter.destroy();
+
     Object.values(this._taskPresenters).forEach(function (taskPresenter) {
       taskPresenter.destroy();
     });
