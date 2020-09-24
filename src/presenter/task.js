@@ -37,20 +37,20 @@ export default class Task {
     this._task = task;
 
     const oldTaskComponent = this._taskComponent;
-    const oldTaskEditorComponent = this._taskEditorComponent;
 
     this._taskComponent = new TaskView(task);
-    this._taskEditorComponent = null;
 
     this._taskComponent.setEditClickHandler(this._onEditClick);
     this._taskComponent.setFavouriteClickHandler(this._onEditorFavouriteClick);
     this._taskComponent.setArchiveClickHandler(this._onEditorArchiveClick);
 
-    if (oldTaskEditorComponent) {
+    if (this._taskEditorComponent) {
       if (this._isSaving) {
-        replaceOrRender(this._taskContainer, this._taskComponent, oldTaskEditorComponent, RenderPosition.BEFOREEND);
+        this._switchToView();
         this._isSaving = false;
       } else {
+        const oldTaskEditorComponent = this._taskEditorComponent;
+        this._taskEditorComponent = null;
         this._makeEditor(oldTaskEditorComponent);
       }
     } else {
@@ -58,7 +58,6 @@ export default class Task {
     }
 
     remove(oldTaskComponent);
-    remove(oldTaskEditorComponent);
   }
 
   setSaving() {

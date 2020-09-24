@@ -11,17 +11,25 @@ import {RenderPosition, render, remove} from "./util/render.js";
 
 import {MenuItem} from "./const.js";
 
-import TasksApi from "./util/tasks-api.js";
-import ApiAdapter from "./util/api-adapter.js";
+import TasksApi from "./api/tasks-api.js";
+import ApiAdapter from "./api/api-adapter.js";
+import Store from "./api/store.js";
+import Provider from "./api/provider.js";
 
 const API_AUTH_TOKEN = `df5gd4lh3jh3ljk4j`;
 const API_URL = `https://12.ecmascript.pages.academy/task-manager`;
+
+const STORE_PREFIX = `taskmanager-localstorage`;
+const STORE_VER = `v12`;
+const STORE_NAME = `${STORE_PREFIX}-${STORE_VER}`;
 
 const mainElement = document.querySelector(`.main`);
 const mainControlElement = mainElement.querySelector(`.main__control`);
 
 const api = new TasksApi(API_URL, API_AUTH_TOKEN);
-const apiAdapter = new ApiAdapter(api);
+const store = new Store(STORE_NAME, window.localStorage);
+const apiWithProvider = new Provider(api, store);
+const apiAdapter = new ApiAdapter(apiWithProvider);
 
 const boardModel = new BoardModel();
 const tasksModel = new TasksModel();
@@ -80,3 +88,21 @@ apiAdapter.getTasks()
     menuComponent.setMenuClickHandler(onMenuClick);
     render(mainControlElement, menuComponent, RenderPosition.BEFOREEND);
   });
+
+window.addEventListener(`load`, () => {
+  navigator.serviceWorker.register(`/sw.js`)
+    .then(() => {
+      console.log(`ServiceWorker available`); // eslint-disable-line
+    }).catch(() => {
+      console.error(`ServiceWorker isn't available`); // eslint-disable-line
+    });
+});
+
+window.addEventListener(`online`, () => {
+  document.title = document.title.replace(` [offline]`, ``);
+  apiWithProvider.sync();
+});
+
+window.addEventListener(`offline`, () => {
+  document.title += ` [offline]`;
+});
